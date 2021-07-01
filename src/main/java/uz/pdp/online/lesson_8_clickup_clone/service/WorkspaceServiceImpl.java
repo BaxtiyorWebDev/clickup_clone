@@ -1,9 +1,7 @@
 package uz.pdp.online.lesson_8_clickup_clone.service;
 
-import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import uz.pdp.online.lesson_8_clickup_clone.entity.*;
@@ -106,14 +104,18 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
     @Override
     public ApiResponse editWorkspace(Long id, WorkspaceDto workspaceDto, User user) {
+
         Optional<Workspace> optionalWorkspace = workspaceRepos.findById(id);
         if (!optionalWorkspace.isPresent())
             return new ApiResponse("Bunday ishxona topilmadi",false);
+        Workspace editingWorkspace = optionalWorkspace.get();
+        boolean equals = editingWorkspace.getOwner().getId().equals(user.getId());
+        if (!equals)
+            return new ApiResponse("Siz ushbu ishxonani o'zgaritira olmaysiz",false);
+
         boolean existsByOwnerIdAndNameAndIdNot = workspaceRepos.existsByOwnerIdAndNameAndIdNot(user.getId(), workspaceDto.getName(), id);
         if (existsByOwnerIdAndNameAndIdNot)
             return new ApiResponse("Bunday ishxona sizda mavjud",false);
-
-        Workspace editingWorkspace = optionalWorkspace.get();
         editingWorkspace.setName(workspaceDto.getName());
         editingWorkspace.setColor(editingWorkspace.getColor());
         editingWorkspace.setAvatar(workspaceDto.getAvatarId()==null?null:attachmentRepos.findById(workspaceDto.getAvatarId()).orElseThrow(() -> new ResourceNotFoundException("attachment")));
@@ -123,7 +125,9 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
 
     @Override
-    public ApiResponse changeOwnerWorkspace(Long id, UUID ownerId) {
+    public ApiResponse changeOwnerWorkspace(Long id, UUID ownerId, User currentUser) {
+        if (!currentUser.getId().equals(ownerId))
+            return new ApiResponse("Siz ushbu amalni bajara olmaysiz",false);
         Optional<Workspace> optionalWorkspace = workspaceRepos.findById(id);
         if (!optionalWorkspace.isPresent())
             return new ApiResponse("Bunday ishxona mavjud emas",false);
@@ -138,10 +142,17 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
-    public ApiResponse deleteWorkspace(Long id) {
+    public ApiResponse deleteWorkspace(Long id, User user) {
         try {
-            workspaceRepos.deleteById(id);
-            return new ApiResponse("O'chirildi",true);
+            Optional<Workspace> optionalWorkspace = workspaceRepos.findById(id);
+            Workspace workspace = optionalWorkspace.get();
+            boolean equals = workspace.getOwner().getId().equals(user.getId());
+            if (equals) {
+                workspaceRepos.deleteById(id);
+                return new ApiResponse("O'chirildi", true);
+            } else {
+                return new ApiResponse("Ishxonani o'chira olmaysiz",false);
+            }
         }catch (Exception e) {
             return new ApiResponse("Xatolik",false);
         }
@@ -210,11 +221,13 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
-    public ApiResponse addRoleToWorkspace(Long id, RoleDto roleDto) {
+    public ApiResponse addRoleToWorkspace(Long id, RoleDto roleDto, User user) {
         Optional<Workspace> optionalWorkspace = workspaceRepos.findById(id);
         if (!optionalWorkspace.isPresent())
             return new ApiResponse("Bunday ishxona topilmadi",false);
         Workspace workspace = optionalWorkspace.get();
+        if (!workspace.getOwner().getId().equals(user.getId()))
+            return new ApiResponse("Sizda ushbu so'rovni amalga oshirish imkoni mavjud emas",false);
         WorkspaceRole workspaceRole = new WorkspaceRole();
         workspaceRole.setWorkspace(workspace);
         workspaceRole.setName(roleDto.getName());
@@ -263,8 +276,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
-    public ApiResponse addOrRemovePermission(WorkspaceRoleDto workspaceRoleDto) {
+    public ApiResponse addOrRemovePermission(WorkspaceRoleDto workspaceRoleDto, User user) {
         WorkspaceRole workspaceRole = workspaceRoleRepos.findById(workspaceRoleDto.getId()).orElseThrow(() -> new ResourceNotFoundException("workspaceRole"));
+        Workspace workspace = workspaceRole.getWorkspace();
+        if (!workspace.getOwner().getId().equals(user.getId()))
+            return new ApiResponse("Sizda ushbu so'rovni amalga oshirish imkoni mavjud emas",false);
         Optional<WorkspacePermission> byWorkspaceRoleIdAndPermission = workspacePermissionRepos.findByWorkspaceRoleIdAndPermission(workspaceRole.getId(), workspaceRoleDto.getWorkspacePermissionName());
         if (workspaceRoleDto.getAddType().equals(AddType.ADD)) {
             if (byWorkspaceRoleIdAndPermission.isPresent())

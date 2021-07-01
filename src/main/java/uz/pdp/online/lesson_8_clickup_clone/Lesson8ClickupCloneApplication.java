@@ -9,5 +9,4 @@ public class Lesson8ClickupCloneApplication {
     public static void main(String[] args) {
         SpringApplication.run(Lesson8ClickupCloneApplication.class, args);
     }
-
 }

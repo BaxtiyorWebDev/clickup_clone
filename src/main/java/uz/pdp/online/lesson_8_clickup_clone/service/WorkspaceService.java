@@ -14,9 +14,9 @@ public interface WorkspaceService {
 
     ApiResponse editWorkspace(Long id, WorkspaceDto workspaceDto, User user);
 
-    ApiResponse changeOwnerWorkspace(Long id, UUID ownerId);
+    ApiResponse changeOwnerWorkspace(Long id, UUID ownerId, User user);
 
-    ApiResponse deleteWorkspace(Long id);
+    ApiResponse deleteWorkspace(Long id, User user);
 
     ApiResponse addOrEditOrRemoveWorkspace(Long id, MemberDto memberDto);
 
@@ -26,7 +26,7 @@ public interface WorkspaceService {
 
     List<Workspace> getWorkspaceList(User user);
 
-    ApiResponse addRoleToWorkspace(Long id, RoleDto roleDto);
+    ApiResponse addRoleToWorkspace(Long id, RoleDto roleDto, User user);
 
-    ApiResponse addOrRemovePermission(WorkspaceRoleDto workspaceRoleDto);
+    ApiResponse addOrRemovePermission(WorkspaceRoleDto workspaceRoleDto, User user);
 }

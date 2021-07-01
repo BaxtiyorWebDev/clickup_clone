@@ -47,8 +47,8 @@ public class WorkspaceController {
      */
     @PutMapping("/changeOwner/{id}")
     public HttpEntity<?> changeOwnerWorkspace(@PathVariable Long id,
-                                              @RequestParam UUID ownerId) {
-        ApiResponse apiResponse = workspaceService.changeOwnerWorkspace(id, ownerId);
+                                              @RequestParam UUID ownerId, @CurrentUser User currentUser) {
+        ApiResponse apiResponse = workspaceService.changeOwnerWorkspace(id, ownerId, currentUser);
         return ResponseEntity.status(apiResponse.isSuccess() ? 201 : 409).body(apiResponse);
     }
 
@@ -60,8 +60,8 @@ public class WorkspaceController {
      * @return
      */
     @DeleteMapping("/{id}")
-    public HttpEntity<?> deleteWorkspace(@PathVariable Long id) {
-        ApiResponse apiResponse = workspaceService.deleteWorkspace(id);
+    public HttpEntity<?> deleteWorkspace(@PathVariable Long id, @CurrentUser User user) {
+        ApiResponse apiResponse = workspaceService.deleteWorkspace(id, user);
         return ResponseEntity.status(apiResponse.isSuccess() ? 201 : 409).body(apiResponse);
     }
 
@@ -108,8 +108,8 @@ public class WorkspaceController {
      * @return
      */
     @PostMapping("/addRole/{id}")
-    public HttpEntity<?> addRoleToWorkspace(@PathVariable Long id, @RequestBody RoleDto roleDto) {
-        ApiResponse apiResponse = workspaceService.addRoleToWorkspace(id,roleDto);
+    public HttpEntity<?> addRoleToWorkspace(@PathVariable Long id, @RequestBody RoleDto roleDto, @CurrentUser User user) {
+        ApiResponse apiResponse = workspaceService.addRoleToWorkspace(id,roleDto,user);
         return ResponseEntity.status(apiResponse.isSuccess()?200:409).body(apiResponse);
     }
 
@@ -119,8 +119,8 @@ public class WorkspaceController {
      * @return
      */
     @PutMapping("/addOrRemovePermission")
-    public HttpEntity<?> addOrRemovePermission(@RequestBody WorkspaceRoleDto workspaceRoleDto) {
-        ApiResponse apiResponse = workspaceService.addOrRemovePermission(workspaceRoleDto);
+    public HttpEntity<?> addOrRemovePermission(@RequestBody WorkspaceRoleDto workspaceRoleDto,@CurrentUser User user) {
+        ApiResponse apiResponse = workspaceService.addOrRemovePermission(workspaceRoleDto, user);
         return ResponseEntity.status(apiResponse.isSuccess()?200:409).body(apiResponse);
     }
 
