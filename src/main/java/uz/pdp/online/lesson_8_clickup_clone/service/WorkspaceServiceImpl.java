@@ -126,8 +126,6 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
     @Override
     public ApiResponse changeOwnerWorkspace(Long id, UUID ownerId, User currentUser) {
-        if (!currentUser.getId().equals(ownerId))
-            return new ApiResponse("Siz ushbu amalni bajara olmaysiz",false);
         Optional<Workspace> optionalWorkspace = workspaceRepos.findById(id);
         if (!optionalWorkspace.isPresent())
             return new ApiResponse("Bunday ishxona mavjud emas",false);
@@ -135,6 +133,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         if (!optionalUser.isPresent())
             return new ApiResponse("Bunday user mavjud emas",false);
         Workspace workspace = optionalWorkspace.get();
+        if (!currentUser.getId().equals(workspace.getOwner().getId()))
+            return new ApiResponse("Siz ushbu amalni bajara olmaysiz",false);
         User user = optionalUser.get();
         workspace.setOwner(user);
         workspaceRepos.save(workspace);
