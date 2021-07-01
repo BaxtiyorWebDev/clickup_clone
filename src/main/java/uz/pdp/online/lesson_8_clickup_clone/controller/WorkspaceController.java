@@ -67,8 +67,8 @@ public class WorkspaceController {
 
     @PostMapping("/addOrEditOrRemove/{id}")
     public HttpEntity<?> addOrEditOrRemoveWorkspace(@PathVariable Long id,
-                                                    @RequestBody MemberDto memberDto) {
-        ApiResponse apiResponse = workspaceService.addOrEditOrRemoveWorkspace(id, memberDto);
+                                                    @RequestBody MemberDto memberDto, @CurrentUser User currentUser) {
+        ApiResponse apiResponse = workspaceService.addOrEditOrRemoveWorkspace(id, memberDto,currentUser);
         return ResponseEntity.status(apiResponse.isSuccess() ? 200 : 409).body(apiResponse);
     }
 
@@ -85,8 +85,8 @@ public class WorkspaceController {
      * @return
      */
     @GetMapping("/viewMembersAndGuests")
-    public HttpEntity<?> viewMembersAndGuests(@PathVariable Long id) {
-        List<User> membersAndGuests = workspaceService.viewMembersAndGuests(id);
+    public HttpEntity<?> viewMembersAndGuests(@PathVariable Long id, @CurrentUser User currentUser) {
+        List<User> membersAndGuests = workspaceService.viewMembersAndGuests(id,currentUser);
         return ResponseEntity.status(membersAndGuests!=null?200:409).body(membersAndGuests);
     }
 

@@ -159,7 +159,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
-    public ApiResponse addOrEditOrRemoveWorkspace(Long id, MemberDto memberDto) {
+    public ApiResponse addOrEditOrRemoveWorkspace(Long id, MemberDto memberDto, User currentUser) {
+        Optional<Workspace> optionalWorkspace = workspaceRepos.findById(id);
+        Workspace workspace = optionalWorkspace.get();
+        if (!workspace.getOwner().getId().equals(currentUser.getId()))
+            return new ApiResponse("Sizda ushbu so'rovni amalga oshirish imkoni yo'q",false);
         if (memberDto.getAddType().equals(AddType.ADD)) {
             WorkspaceUser workspaceUser = new WorkspaceUser(
                     workspaceRepos.findById(id).orElseThrow(() -> new ResourceNotFoundException("id")),
@@ -170,10 +174,6 @@ public class WorkspaceServiceImpl implements WorkspaceService {
             );
             workspaceUserRepos.save(workspaceUser);
 //            todo EMAILGA INVITE XABAR YUBORISH
-            Optional<User> optionalUser = userRepos.findById(memberDto.getId());
-            Optional<Workspace> optionalWorkspace = workspaceRepos.findById(id);
-            Workspace workspace = optionalWorkspace.get();
-            User user = optionalUser.get();
         } else if (memberDto.getAddType().equals(AddType.EDIT)) {
 
             WorkspaceUser workspaceUser = workspaceUserRepos.findByWorkspaceIdAndUserId(id,memberDto.getId()).orElseGet(WorkspaceUser::new);
@@ -199,7 +199,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
-    public List<User> viewMembersAndGuests(Long id) {
+    public List<User> viewMembersAndGuests(Long id, User currentUser) {
+        Optional<Workspace> optionalWorkspace = workspaceRepos.findById(id);
+        Workspace workspace = optionalWorkspace.get();
+        if (!workspace.getOwner().getId().equals(currentUser.getId()))
+            return null;
         List<WorkspaceUser> allByWorkspaceId = workspaceUserRepos.findAllByWorkspaceId(id);
         List<User> userList = new ArrayList<>();
         for (WorkspaceUser workspaceUser : allByWorkspaceId) {
@@ -213,11 +217,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Override
     public List<Workspace> getWorkspaceList(User user) {
         List<Workspace> allByUserId = workspaceUserRepos.findAllByUserId(user.getId());
-        List<Workspace> workspaceList = new ArrayList<>();
-        for (Workspace workspace : allByUserId) {
-            workspaceList.add(workspace);
-        }
-        return workspaceList;
+        return allByUserId;
     }
 
     @Override
@@ -252,9 +252,9 @@ public class WorkspaceServiceImpl implements WorkspaceService {
                 }
             }
         } else if (roleDto.getId()==3) {
-            workspaceRole.setExtendsRole(WorkspaceRoleName.ROLE_OWNER);
+            workspaceRole.setExtendsRole(WorkspaceRoleName.ROLE_MEMBER);
             for (WorkspacePermissionName workspacePermissionName : workspacePermissionNames) {
-                if (workspacePermissionName.getWorkspaceRoleNames().contains(WorkspaceRoleName.ROLE_OWNER)) {
+                if (workspacePermissionName.getWorkspaceRoleNames().contains(WorkspaceRoleName.ROLE_MEMBER)) {
                     workspacePermissions.add(new WorkspacePermission(
                             workspaceRole,
                             workspacePermissionName));

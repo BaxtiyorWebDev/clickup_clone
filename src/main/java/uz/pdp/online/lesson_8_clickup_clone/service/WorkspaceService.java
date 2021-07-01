@@ -18,11 +18,11 @@ public interface WorkspaceService {
 
     ApiResponse deleteWorkspace(Long id, User user);
 
-    ApiResponse addOrEditOrRemoveWorkspace(Long id, MemberDto memberDto);
+    ApiResponse addOrEditOrRemoveWorkspace(Long id, MemberDto memberDto, User currentUser);
 
     ApiResponse joinToWorkspace(Long id, User user);
 
-    List<User> viewMembersAndGuests(Long id);
+    List<User> viewMembersAndGuests(Long id, User user);
 
     List<Workspace> getWorkspaceList(User user);
 
